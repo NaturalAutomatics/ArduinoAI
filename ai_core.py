@@ -163,7 +163,7 @@ Update your knowledge for future Arduino explorations.
             
             if response.status_code == 200:
                 learning_response = response.json()['choices'][0]['message']['content']
-                print(f"🧠 AI Learning: {learning_response[:100]}...")
+                print(f"AI Learning: {learning_response[:100]}...")
                 return True
         except Exception as e:
             print(f"Training iteration failed: {e}")

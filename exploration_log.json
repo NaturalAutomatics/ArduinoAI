@@ -1,5 +1,5 @@
 {
-  "total_cycles": 2,
+  "total_cycles": 1,
   "sensors_used": [
     "temperature"
   ],
@@ -31,6 +31,42 @@
       "cycle": 2,
       "version": 3,
       "timestamp": "2025-07-28T00:58:16.472029"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 4,
+      "timestamp": "2025-07-28T01:05:11.603132"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Added sensors: ['temperature']",
+      "cycle": 1,
+      "version": 5,
+      "timestamp": "2025-07-28T01:05:20.307546"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 6,
+      "timestamp": "2025-07-28T01:10:45.428453"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Added sensors: ['temperature']",
+      "cycle": 1,
+      "version": 7,
+      "timestamp": "2025-07-28T01:10:53.195937"
     }
   ]
 }

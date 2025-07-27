@@ -84,8 +84,13 @@ void loop() {{
         version_dir = os.path.join(self.base_path, f"v{self.current_version}")
         os.makedirs(version_dir, exist_ok=True)
         
-        # Save sketch
-        sketch_path = os.path.join(version_dir, f"sketch_v{self.current_version}.ino")
+        # Create sketch directory (Arduino CLI needs directory structure)
+        sketch_name = f"sketch_v{self.current_version}"
+        sketch_dir = os.path.join(version_dir, sketch_name)
+        os.makedirs(sketch_dir, exist_ok=True)
+        
+        # Save sketch with proper name
+        sketch_path = os.path.join(sketch_dir, f"{sketch_name}.ino")
         with open(sketch_path, 'w') as f:
             f.write(sketch_content)
         
@@ -98,7 +103,7 @@ void loop() {{
             json.dump(metadata, f, indent=2)
         
         self._save_version_info()
-        return sketch_path
+        return sketch_dir  # Return directory path for Arduino CLI
     
     def get_version_history(self) -> List[Dict]:
         """Get list of all firmware versions"""
