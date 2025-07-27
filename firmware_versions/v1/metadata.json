@@ -1,0 +1,9 @@
+{
+  "sensors": [
+    "temperature"
+  ],
+  "reason": "Initial setup with basic sensors",
+  "cycle": 0,
+  "version": 1,
+  "timestamp": "2025-07-28T00:44:06.396313"
+}

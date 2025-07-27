@@ -1,5 +1,6 @@
 import time
 import json
+from typing import Dict
 from arduino_interface import ArduinoInterface
 from firmware_manager import FirmwareManager
 from ai_core import AICore
