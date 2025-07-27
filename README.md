@@ -57,3 +57,7 @@ Edit these variables in `main.py`:
 - `current_sensors` - Starting sensor list
 - AI model endpoint in `ai_core.py`
 - Arduino board type in `arduino_interface.py`
+
+## Testing
+After running multiple iterration AI asking user to change physical Arduino connections to evolve
+![alt text](image.png)
