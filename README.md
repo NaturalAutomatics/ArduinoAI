@@ -66,3 +66,6 @@ An autonomous AI system that explores the physical world through Arduino sensors
 ## Testing
 After running multiple iterration AI asking user to change physical Arduino connections to evolve
 ![alt text](image.png)
+
+Requests working with local AI model running in GPT4ALL 
+![alt text](image-1.png)

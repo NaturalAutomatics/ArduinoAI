@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import serial
 import serial.tools.list_ports
 import subprocess
@@ -10,7 +11,7 @@ class ArduinoInterface:
         self.port = port or self._find_arduino_port()
         self.baudrate = baudrate
         self.connection = None
-        print(f"Using Arduino port: {self.port}")
+        print(f"🔍 Using Arduino port: {self.port}")
         
     def _find_arduino_port(self) -> Optional[str]:
         """Auto-detect Arduino USB port"""
@@ -57,17 +58,17 @@ class ArduinoInterface:
                 return True
             
             # Fallback: Manual upload instruction
-            print("WARNING: Arduino CLI not found. Manual upload required:")
+            print("⚠️ Arduino CLI not found. Manual upload required:")
             sketch_file = self._find_sketch_file(sketch_path)
-            print(f"Open this file in Arduino IDE: {sketch_file}")
-            print(f"Upload to {self.port} manually")
+            print(f"📁 Open this file in Arduino IDE: {sketch_file}")
+            print(f"📤 Upload to {self.port} manually")
             
-            input("Press Enter after uploading firmware manually...")
+            input("⏸️ Press Enter after uploading firmware manually...")
             time.sleep(2)
             return True
             
         except Exception as e:
-            print(f"Upload exception: {e}")
+            print(f"❌ Upload exception: {e}")
             return False
     
     def _try_arduino_cli(self, sketch_path: str) -> bool:
@@ -75,17 +76,29 @@ class ArduinoInterface:
         try:
             sketch_name = os.path.basename(sketch_path)
             
-            print(f"Trying Arduino CLI for: {sketch_name}")
-            compile_cmd = f'arduino-cli compile --fqbn arduino:avr:uno "{sketch_path}"'
+            print(f"📤 Compiling sketch: {sketch_name}")
+            # Try local arduino-cli.exe first
+            if os.path.exists("arduino-cli.exe"):
+                compile_cmd = f'.\\arduino-cli.exe compile --fqbn arduino:avr:uno "{sketch_path}"'
+                upload_cmd = f'.\\arduino-cli.exe upload -p {self.port} --fqbn arduino:avr:uno "{sketch_path}"'
+            else:
+                compile_cmd = f'arduino-cli compile --fqbn arduino:avr:uno "{sketch_path}"'
+                upload_cmd = f'arduino-cli upload -p {self.port} --fqbn arduino:avr:uno "{sketch_path}"'
+            
             compile_result = subprocess.run(compile_cmd, shell=True, capture_output=True, text=True)
             
             if compile_result.returncode != 0:
+                print(f"❌ Compile error: {compile_result.stderr}")
                 return False
             
-            upload_cmd = f'arduino-cli upload -p {self.port} --fqbn arduino:avr:uno "{sketch_path}"'
+            print(f"📤 Uploading to {self.port}")
             upload_result = subprocess.run(upload_cmd, shell=True, capture_output=True, text=True)
             
-            return upload_result.returncode == 0
+            if upload_result.returncode != 0:
+                print(f"❌ Upload error: {upload_result.stderr}")
+                return False
+            
+            return True
             
         except:
             return False

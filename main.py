@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import time
 import json
 from typing import Dict
@@ -16,13 +17,13 @@ class ArduinoAIExplorer:
         
     def run_exploration_loop(self):
         """Main exploration loop"""
-        print("Arduino AI Explorer Starting...")
+        print("🤖 Arduino AI Explorer Starting...")
         
         if not self.arduino.connect():
-            print("ERROR: Failed to connect to Arduino. Check USB connection.")
+            print("❌ Failed to connect to Arduino. Check USB connection.")
             return
         
-        print(f"SUCCESS: Connected to Arduino on {self.arduino.port}")
+        print(f"✅ Connected to Arduino on {self.arduino.port}")
         
         # Initial firmware upload
         self._update_firmware("Initial setup with basic sensors")
@@ -30,11 +31,11 @@ class ArduinoAIExplorer:
         try:
             while True:
                 self.exploration_cycle += 1
-                print(f"\nExploration Cycle {self.exploration_cycle}")
+                print(f"\n🔄 Exploration Cycle {self.exploration_cycle}")
                 
                 # Read sensor data
                 sensor_data = self.arduino.read_data()
-                print(f"Sensor Data: {sensor_data}")
+                print(f"📊 Sensor Data: {sensor_data}")
                 
                 if sensor_data:
                     self.data_history.append({
@@ -45,34 +46,34 @@ class ArduinoAIExplorer:
                 
                 # AI analysis
                 analysis = self.ai.analyze_sensor_data(sensor_data)
-                print(f"AI Analysis: {analysis.get('analysis', 'No analysis')}")
+                print(f"🧠 AI Analysis: {analysis.get('analysis', 'No analysis')}")
                 
                 # Check if firmware update needed
                 if self.ai.should_update_firmware(sensor_data, analysis):
-                    print("AI suggests firmware update...")
+                    print("🔧 AI suggests firmware update...")
                     self._handle_firmware_update(analysis, sensor_data)
                 
                 # Generate exploration plan
                 plan = self.ai.generate_exploration_plan(self.current_sensors, self.data_history)
-                print(f"Next Exploration: {plan.get('next_exploration', 'Continue monitoring')}")
+                print(f"🎯 Next Exploration: {plan.get('next_exploration', 'Continue monitoring')}")
                 
                 # User interaction
                 if plan.get('hardware_changes'):
-                    print(f"USER ACTION NEEDED: {plan['hardware_changes']}")
+                    print(f"👤 USER ACTION NEEDED: {plan['hardware_changes']}")
                     input("Press Enter when hardware changes are complete...")
                 
                 # Wait before next cycle
                 time.sleep(10)
                 
         except KeyboardInterrupt:
-            print("\nExploration stopped by user")
+            print("\n🛑 Exploration stopped by user")
         finally:
             self.arduino.disconnect()
             self._save_exploration_log()
     
     def _update_firmware(self, reason: str):
         """Update Arduino firmware"""
-        print(f"Generating firmware: {reason}")
+        print(f"📝 Generating firmware: {reason}")
         
         # Generate new firmware
         sketch_content = self.firmware_manager.create_firmware(
@@ -91,17 +92,17 @@ class ArduinoAIExplorer:
         
         # Upload to Arduino
         if self.arduino.upload_firmware(sketch_path):
-            print("SUCCESS: Firmware updated successfully")
+            print("✅ Firmware updated successfully")
             time.sleep(3)  # Allow Arduino to restart
             self.arduino.connect()  # Reconnect after upload
         else:
-            print("ERROR: Firmware upload failed")
+            print("❌ Firmware upload failed")
     
     def _handle_firmware_update(self, analysis: Dict, sensor_data: Dict):
         """Handle firmware update based on AI analysis"""
         new_sensors = analysis.get('suggested_sensors', [])
         if new_sensors:
-            print(f"Adding sensors: {new_sensors}")
+            print(f"🔧 Adding sensors: {new_sensors}")
             self.current_sensors.extend([s for s in new_sensors if s not in self.current_sensors])
             
             # Generate and save firmware
@@ -136,11 +137,11 @@ class ArduinoAIExplorer:
         with open('exploration_log.json', 'w') as f:
             json.dump(log_data, f, indent=2)
         
-        print("Exploration log saved")
+        print("📋 Exploration log saved")
     
     def _train_ai_model(self):
         """Train AI model with recent exploration data"""
-        print("Training AI model with recent data...")
+        print("🧠 Training AI model with recent data...")
         
         # Get recent training data
         training_summary = self.ai.get_training_summary()
@@ -149,11 +150,11 @@ class ArduinoAIExplorer:
         if recent_entries:
             success = self.ai.train_model_iteration(recent_entries)
             if success:
-                print("SUCCESS: AI model updated with new knowledge")
+                print("✅ AI model updated with new knowledge")
             else:
-                print("ERROR: AI training iteration failed")
+                print("❌ AI training iteration failed")
         
-        print(f"Total training entries: {training_summary['total_training_entries']}")
+        print(f"📈 Total training entries: {training_summary['total_training_entries']}")
 
 if __name__ == "__main__":
     explorer = ArduinoAIExplorer()
