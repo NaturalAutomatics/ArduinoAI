@@ -14,23 +14,38 @@ class AICore:
         
     def analyze_sensor_data(self, data: Dict) -> Dict:
         """Analyze current sensor readings and suggest next actions"""
+        cycle_num = len(self.exploration_history) + 1
+        context = f"Cycle {cycle_num} - Current sensors: {list(data.keys()) if data else 'none'}"
+        
+        # Add randomness and context
+        import random
+        sensor_options = ["light", "motion", "humidity", "sound", "pressure", "ultrasonic", "accelerometer"]
+        random_sensors = random.sample(sensor_options, 2)
+        
         prompt = f"""
-Analyze Arduino sensor data: {json.dumps(data)}
+You are an autonomous Arduino AI explorer on {context}.
 
-Based on this data, suggest:
-1. What new sensors to add
-2. What connections to change
-3. What logic to implement
-4. Questions to explore
+Current readings: {json.dumps(data)}
+Exploration history: {len(self.exploration_history)} previous cycles
+
+As a curious AI scientist, analyze this data creatively. What mysteries does this environment hold?
+
+Suggest something NEW and different from typical responses. Consider:
+- Environmental factors affecting readings
+- Unexpected sensor combinations
+- Creative experiments to try
+- Random exploration ideas: {random_sensors}
 
 Respond in JSON format:
 {{
-  "analysis": "brief analysis",
-  "suggested_sensors": ["sensor1", "sensor2"],
-  "suggested_logic": "Arduino code snippet",
-  "exploration_question": "What should we explore next?",
-  "user_instructions": "Tell user what to connect/change"
+  "analysis": "creative analysis with specific insights",
+  "suggested_sensors": ["specific_sensor_type"],
+  "suggested_logic": "Arduino code for new behavior",
+  "exploration_question": "intriguing question about environment",
+  "user_instructions": "specific hardware action needed"
 }}
+
+Be creative and avoid repetitive suggestions!
 """
         
         try:
@@ -40,7 +55,7 @@ Respond in JSON format:
                 json={
                     "model": "gpt4all",
                     "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.7
+                    "temperature": 0.9
                 }
             )
             
@@ -54,33 +69,54 @@ Respond in JSON format:
         except Exception as e:
             print(f"AI analysis failed: {e}")
         
-        # Fallback response
+        # Dynamic fallback responses
+        import random
+        fallback_sensors = ["light", "motion", "humidity", "sound"]
+        fallback_pins = ["A1", "A2", "D2", "D3"]
+        selected_sensor = random.choice(fallback_sensors)
+        selected_pin = random.choice(fallback_pins)
+        
         return {
-            "analysis": "No data received",
-            "suggested_sensors": ["temperature"],
-            "suggested_logic": "// Basic sensor reading",
-            "exploration_question": "Let's start with basic sensors",
-            "user_instructions": "Connect a temperature sensor to A0"
+            "analysis": f"Exploring cycle {len(self.exploration_history)} - need more environmental data",
+            "suggested_sensors": [selected_sensor],
+            "suggested_logic": f"// Monitor {selected_sensor} sensor",
+            "exploration_question": f"How does {selected_sensor} vary in this environment?",
+            "user_instructions": f"Connect {selected_sensor} sensor to {selected_pin}"
         }
     
     def generate_exploration_plan(self, current_sensors: List[str], data_history: List[Dict]) -> Dict:
         """Generate next exploration step based on history"""
+        cycle_count = len(data_history)
+        
+        # Add variety to suggestions
+        import random
+        exploration_ideas = [
+            "environmental monitoring", "motion detection", "sound analysis", 
+            "light pattern tracking", "vibration sensing", "proximity detection"
+        ]
+        random_idea = random.choice(exploration_ideas)
+        
         prompt = f"""
-Current sensors: {current_sensors}
-Recent data: {json.dumps(data_history[-5:] if data_history else [])}
+You are an autonomous Arduino explorer after {cycle_count} cycles.
 
-Generate next exploration step:
-1. What patterns do you see?
-2. What should we explore next?
-3. What hardware changes are needed?
+Current setup: {current_sensors}
+Recent data trends: {json.dumps(data_history[-3:] if data_history else [])}
 
-JSON response format:
+As a creative AI scientist, what should we investigate next? Think outside the box!
+
+Consider this random inspiration: {random_idea}
+
+Avoid suggesting the same sensors repeatedly. Be innovative!
+
+JSON response:
 {{
-  "pattern_analysis": "what patterns found",
-  "next_exploration": "specific next step",
-  "hardware_changes": "what user should connect/disconnect",
-  "expected_outcome": "what we expect to learn"
+  "pattern_analysis": "unique insights from data",
+  "next_exploration": "creative investigation idea",
+  "hardware_changes": "specific new sensor/connection",
+  "expected_outcome": "hypothesis to test"
 }}
+
+Make each response unique and interesting!
 """
         
         try:
@@ -90,7 +126,7 @@ JSON response format:
                 json={
                     "model": "gpt4all",
                     "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.8
+                    "temperature": 0.9
                 }
             )
             
@@ -103,11 +139,22 @@ JSON response format:
         except:
             pass
         
+        # Dynamic fallback with variety
+        import random
+        explorations = [
+            "environmental mapping", "motion tracking", "sound monitoring", 
+            "light analysis", "vibration detection", "proximity sensing"
+        ]
+        sensors = ["motion to D2", "light to A2", "sound to A3", "humidity to A4"]
+        
+        selected_exploration = random.choice(explorations)
+        selected_sensor = random.choice(sensors)
+        
         return {
-            "pattern_analysis": "Collecting initial data",
-            "next_exploration": "Add more sensors for environmental monitoring",
-            "hardware_changes": "Connect light sensor to A1",
-            "expected_outcome": "Better understanding of environment"
+            "pattern_analysis": f"Cycle {len(data_history)} - exploring {selected_exploration}",
+            "next_exploration": f"Investigate {selected_exploration} patterns",
+            "hardware_changes": f"Connect {selected_sensor}",
+            "expected_outcome": f"Discover {selected_exploration} characteristics"
         }
     
     def should_update_firmware(self, current_data: Dict, analysis: Dict) -> bool:

@@ -44,7 +44,8 @@ class ArduinoAIExplorer:
                         'data': sensor_data
                     })
                 
-                # AI analysis
+                # AI analysis with cycle context
+                self.ai.exploration_history.append({'cycle': self.exploration_cycle, 'data': sensor_data})
                 analysis = self.ai.analyze_sensor_data(sensor_data)
                 print(f"🧠 AI Analysis: {analysis.get('analysis', 'No analysis')}")
                 
