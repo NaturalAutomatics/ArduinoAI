@@ -50,7 +50,7 @@ class ArduinoAIExplorer:
                 # Check if firmware update needed
                 if self.ai.should_update_firmware(sensor_data, analysis):
                     print("🔧 AI suggests firmware update...")
-                    self._handle_firmware_update(analysis)
+                    self._handle_firmware_update(analysis, sensor_data)
                 
                 # Generate exploration plan
                 plan = self.ai.generate_exploration_plan(self.current_sensors, self.data_history)
@@ -97,13 +97,32 @@ class ArduinoAIExplorer:
         else:
             print("❌ Firmware upload failed")
     
-    def _handle_firmware_update(self, analysis: Dict):
+    def _handle_firmware_update(self, analysis: Dict, sensor_data: Dict):
         """Handle firmware update based on AI analysis"""
         new_sensors = analysis.get('suggested_sensors', [])
         if new_sensors:
             print(f"🔧 Adding sensors: {new_sensors}")
             self.current_sensors.extend([s for s in new_sensors if s not in self.current_sensors])
+            
+            # Generate and save firmware
+            sketch_content = self.firmware_manager.create_firmware(
+                self.current_sensors,
+                analysis.get('suggested_logic', '// AI-generated logic')
+            )
+            
+            # Save training data
+            self.ai.save_training_data(
+                sensor_data, 
+                analysis, 
+                sketch_content, 
+                f"Added sensors: {new_sensors}"
+            )
+            
             self._update_firmware(f"Added sensors: {new_sensors}")
+            
+            # Train AI every 3 firmware updates
+            if self.exploration_cycle % 3 == 0:
+                self._train_ai_model()
     
     def _save_exploration_log(self):
         """Save exploration session log"""
@@ -118,6 +137,23 @@ class ArduinoAIExplorer:
             json.dump(log_data, f, indent=2)
         
         print("📋 Exploration log saved")
+    
+    def _train_ai_model(self):
+        """Train AI model with recent exploration data"""
+        print("🧠 Training AI model with recent data...")
+        
+        # Get recent training data
+        training_summary = self.ai.get_training_summary()
+        recent_entries = training_summary.get('latest_entries', [])
+        
+        if recent_entries:
+            success = self.ai.train_model_iteration(recent_entries)
+            if success:
+                print("✅ AI model updated with new knowledge")
+            else:
+                print("❌ AI training iteration failed")
+        
+        print(f"📈 Total training entries: {training_summary['total_training_entries']}")
 
 if __name__ == "__main__":
     explorer = ArduinoAIExplorer()

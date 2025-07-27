@@ -53,9 +53,14 @@ An autonomous AI system that explores the physical world through Arduino sensors
 
 ## Configuration
 
-Edit these variables in `main.py`:
-- `current_sensors` - Starting sensor list
-- AI model endpoint in `ai_core.py`
+**GPT4ALL Setup:**
+- Ensure GPT4ALL server is running on `http://localhost:4891`
+- Model will be trained with each exploration cycle
+- Training data saved to `ArduinoAI_training/` folder
+
+**Variables to edit:**
+- `current_sensors` in `main.py` - Starting sensor list
+- `base_url` in `ai_core.py` - GPT4ALL server endpoint
 - Arduino board type in `arduino_interface.py`
 
 ## Testing
