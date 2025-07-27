@@ -46,6 +46,8 @@ Respond in JSON format:
 }}
 
 Be creative and avoid repetitive suggestions!
+
+IMPORTANT: Respond with ONLY the JSON object. No extra text before or after.
 """
         
         try:
@@ -54,34 +56,45 @@ Be creative and avoid repetitive suggestions!
                 headers={"Content-Type": "application/json"},
                 json={
                     "model": "gpt4all",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.9
+                    "messages": [
+                        {"role": "system", "content": "You are an Arduino AI. Always respond with valid JSON only. No extra text."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 500
                 }
             )
             
             if response.status_code == 200:
-                content = response.json()['choices'][0]['message']['content']
-                # Extract JSON from response
+                content = response.json()['choices'][0]['message']['content'].strip()
+                print(f"Raw AI response: {content[:100]}...")  # Debug
+                
+                # Clean and extract JSON
                 start = content.find('{')
                 end = content.rfind('}') + 1
                 if start >= 0 and end > start:
-                    return json.loads(content[start:end])
+                    json_str = content[start:end]
+                    return json.loads(json_str)
         except Exception as e:
             print(f"AI analysis failed: {e}")
         
-        # Dynamic fallback responses
+        # Dynamic fallback responses with clear instructions
         import random
-        fallback_sensors = ["light", "motion", "humidity", "sound"]
-        fallback_pins = ["A1", "A2", "D2", "D3"]
-        selected_sensor = random.choice(fallback_sensors)
-        selected_pin = random.choice(fallback_pins)
+        fallback_options = [
+            {"sensor": "light", "pin": "A1", "action": "Connect light sensor to pin A1"},
+            {"sensor": "motion", "pin": "D2", "action": "Connect PIR motion sensor to pin D2"},
+            {"sensor": "humidity", "pin": "A2", "action": "Connect DHT22 humidity sensor to pin A2"},
+            {"sensor": "sound", "pin": "A3", "action": "Connect microphone sensor to pin A3"},
+            {"sensor": "ultrasonic", "pin": "D3", "action": "Connect HC-SR04 ultrasonic sensor to pins D3/D4"}
+        ]
+        selected = random.choice(fallback_options)
         
         return {
-            "analysis": f"Exploring cycle {len(self.exploration_history)} - need more environmental data",
-            "suggested_sensors": [selected_sensor],
-            "suggested_logic": f"// Monitor {selected_sensor} sensor",
-            "exploration_question": f"How does {selected_sensor} vary in this environment?",
-            "user_instructions": f"Connect {selected_sensor} sensor to {selected_pin}"
+            "analysis": f"Cycle {len(self.exploration_history)} - expanding sensor network",
+            "suggested_sensors": [selected["sensor"]],
+            "suggested_logic": f"// Read {selected['sensor']} from {selected['pin']}",
+            "exploration_question": f"What {selected['sensor']} patterns exist here?",
+            "user_instructions": selected["action"]
         }
     
     def generate_exploration_plan(self, current_sensors: List[str], data_history: List[Dict]) -> Dict:
@@ -117,6 +130,8 @@ JSON response:
 }}
 
 Make each response unique and interesting!
+
+IMPORTANT: Respond with ONLY the JSON object. No extra text before or after.
 """
         
         try:
@@ -125,36 +140,41 @@ Make each response unique and interesting!
                 headers={"Content-Type": "application/json"},
                 json={
                     "model": "gpt4all",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.9
+                    "messages": [
+                        {"role": "system", "content": "You are an Arduino AI. Respond with valid JSON only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 300
                 }
             )
             
             if response.status_code == 200:
-                content = response.json()['choices'][0]['message']['content']
+                content = response.json()['choices'][0]['message']['content'].strip()
                 start = content.find('{')
                 end = content.rfind('}') + 1
                 if start >= 0 and end > start:
-                    return json.loads(content[start:end])
-        except:
-            pass
+                    json_str = content[start:end]
+                    return json.loads(json_str)
+        except Exception as e:
+            print(f"Exploration plan failed: {e}")
         
-        # Dynamic fallback with variety
+        # Dynamic fallback with clear hardware instructions
         import random
-        explorations = [
-            "environmental mapping", "motion tracking", "sound monitoring", 
-            "light analysis", "vibration detection", "proximity sensing"
+        options = [
+            {"exploration": "motion detection", "hardware": "Connect PIR sensor to pin D2"},
+            {"exploration": "light monitoring", "hardware": "Connect photoresistor to pin A1"},
+            {"exploration": "sound analysis", "hardware": "Connect microphone to pin A3"},
+            {"exploration": "humidity tracking", "hardware": "Connect DHT22 to pin A2"},
+            {"exploration": "distance sensing", "hardware": "Connect ultrasonic sensor to pins D3/D4"}
         ]
-        sensors = ["motion to D2", "light to A2", "sound to A3", "humidity to A4"]
-        
-        selected_exploration = random.choice(explorations)
-        selected_sensor = random.choice(sensors)
+        selected = random.choice(options)
         
         return {
-            "pattern_analysis": f"Cycle {len(data_history)} - exploring {selected_exploration}",
-            "next_exploration": f"Investigate {selected_exploration} patterns",
-            "hardware_changes": f"Connect {selected_sensor}",
-            "expected_outcome": f"Discover {selected_exploration} characteristics"
+            "pattern_analysis": f"Cycle {len(data_history)} - need {selected['exploration']} data",
+            "next_exploration": f"Implement {selected['exploration']} monitoring",
+            "hardware_changes": selected["hardware"],
+            "expected_outcome": f"Gather {selected['exploration']} environmental data"
         }
     
     def should_update_firmware(self, current_data: Dict, analysis: Dict) -> bool:

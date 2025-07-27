@@ -1,28 +1,15 @@
 {
-  "total_cycles": 3,
+  "total_cycles": 1,
   "sensors_used": [
-    "temperature"
+    "temperature",
+    "sound"
   ],
   "data_history": [
     {
       "cycle": 1,
-      "timestamp": 1753656013.310448,
+      "timestamp": 1753658539.976539,
       "data": {
-        "temp": 545
-      }
-    },
-    {
-      "cycle": 2,
-      "timestamp": 1753657207.0290072,
-      "data": {
-        "temp": 556
-      }
-    },
-    {
-      "cycle": 3,
-      "timestamp": 1753657307.9850101,
-      "data": {
-        "temp": 565
+        "temp": 526
       }
     }
   ],
@@ -143,6 +130,44 @@
       "cycle": 2,
       "version": 13,
       "timestamp": "2025-07-28T02:00:30.025740"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 14,
+      "timestamp": "2025-07-28T02:13:40.000969"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "sound"
+      ],
+      "reason": "Added sensors: ['sound']",
+      "cycle": 1,
+      "version": 15,
+      "timestamp": "2025-07-28T02:14:13.327915"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 16,
+      "timestamp": "2025-07-28T02:22:08.122845"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "sound"
+      ],
+      "reason": "Added sensors: ['sound']",
+      "cycle": 1,
+      "version": 17,
+      "timestamp": "2025-07-28T02:22:52.450408"
     }
   ]
 }

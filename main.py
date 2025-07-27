@@ -76,10 +76,11 @@ class ArduinoAIExplorer:
         """Update Arduino firmware"""
         print(f"📝 Generating firmware: {reason}")
         
-        # Generate new firmware
+        # Generate new firmware with safe logic
+        safe_logic = "// AI-generated exploration logic\ndelay(1000);"
         sketch_content = self.firmware_manager.create_firmware(
             self.current_sensors,
-            "// AI-generated exploration logic\ndelay(1000);"
+            safe_logic
         )
         
         # Save version
@@ -106,10 +107,13 @@ class ArduinoAIExplorer:
             print(f"🔧 Adding sensors: {new_sensors}")
             self.current_sensors.extend([s for s in new_sensors if s not in self.current_sensors])
             
-            # Generate and save firmware
+            # Generate and save firmware with validated logic
+            ai_logic = analysis.get('suggested_logic', '// AI-generated logic')
+            # Clean AI logic to prevent syntax errors
+            safe_logic = self._validate_arduino_logic(ai_logic)
             sketch_content = self.firmware_manager.create_firmware(
                 self.current_sensors,
-                analysis.get('suggested_logic', '// AI-generated logic')
+                safe_logic
             )
             
             # Save training data
@@ -156,6 +160,28 @@ class ArduinoAIExplorer:
                 print("❌ AI training iteration failed")
         
         print(f"📈 Total training entries: {training_summary['total_training_entries']}")
+    
+    def _validate_arduino_logic(self, logic: str) -> str:
+        """Validate and clean AI-generated Arduino logic"""
+        if not logic or not isinstance(logic, str):
+            return "// No additional logic"
+        
+        # Remove potentially dangerous or invalid code
+        dangerous_keywords = ['#include', 'system(', 'exec(', 'eval(']
+        clean_logic = logic
+        
+        for keyword in dangerous_keywords:
+            if keyword in clean_logic:
+                clean_logic = "// Unsafe code removed"
+                break
+        
+        # Ensure it's valid C++ comment or code
+        if not (clean_logic.strip().startswith('//') or 
+                clean_logic.strip().startswith('/*') or
+                any(c in clean_logic for c in [';', '{', '}'])):
+            clean_logic = f"// {clean_logic}"
+        
+        return clean_logic
 
 if __name__ == "__main__":
     explorer = ArduinoAIExplorer()

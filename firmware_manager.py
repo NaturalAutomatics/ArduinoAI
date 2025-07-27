@@ -27,26 +27,27 @@ class FirmwareManager:
     
     def create_firmware(self, sensors: List[str], logic: str) -> str:
         """Generate Arduino sketch based on sensors and logic"""
-        sketch = f'''
-void setup() {{
+        # Clean logic to prevent syntax errors
+        clean_logic = logic.strip() if logic else "// No additional logic"
+        
+        sketch = f'''void setup() {{
   Serial.begin(9600);
-  {self._generate_setup_code(sensors)}
+{self._generate_setup_code(sensors)}
 }}
 
 void loop() {{
   if (Serial.available() && Serial.readString().indexOf("READ") >= 0) {{
     Serial.print("{{");
-    {self._generate_read_code(sensors)}
+{self._generate_read_code(sensors)}
     Serial.println("}}");
   }}
   
-  {logic}
+  {clean_logic}
   
   delay(100);
 }}
 
-{self._generate_helper_functions(sensors)}
-'''
+{self._generate_helper_functions(sensors)}'''
         return sketch
     
     def _generate_setup_code(self, sensors: List[str]) -> str:
@@ -59,19 +60,30 @@ void loop() {{
                 setup_lines.append("  // Light sensor on A1")
             elif sensor == "motion":
                 setup_lines.append("  pinMode(2, INPUT); // Motion sensor")
-        return "\n".join(setup_lines)
+            elif sensor == "humidity":
+                setup_lines.append("  // Humidity sensor on A2")
+            elif sensor == "sound":
+                setup_lines.append("  // Sound sensor on A3")
+        return "\n".join(setup_lines) if setup_lines else "  // No sensors configured"
     
     def _generate_read_code(self, sensors: List[str]) -> str:
         """Generate sensor reading code"""
+        if not sensors:
+            return '    Serial.print("\\"status\\":\\"no_sensors\\"");'
+        
         read_lines = []
         for i, sensor in enumerate(sensors):
             comma = "," if i < len(sensors) - 1 else ""
             if sensor == "temperature":
-                read_lines.append(f'    Serial.print("\\"temp\\":" + String(analogRead(A0)){comma});')
+                read_lines.append(f'    Serial.print("\\"temp\\":" + String(analogRead(A0)) + "{comma}");')
             elif sensor == "light":
-                read_lines.append(f'    Serial.print("\\"light\\":" + String(analogRead(A1)){comma});')
+                read_lines.append(f'    Serial.print("\\"light\\":" + String(analogRead(A1)) + "{comma}");')
             elif sensor == "motion":
-                read_lines.append(f'    Serial.print("\\"motion\\":" + String(digitalRead(2)){comma});')
+                read_lines.append(f'    Serial.print("\\"motion\\":" + String(digitalRead(2)) + "{comma}");')
+            elif sensor == "humidity":
+                read_lines.append(f'    Serial.print("\\"humidity\\":" + String(analogRead(A2)) + "{comma}");')
+            elif sensor == "sound":
+                read_lines.append(f'    Serial.print("\\"sound\\":" + String(analogRead(A3)) + "{comma}");')
         return "\n".join(read_lines)
     
     def _generate_helper_functions(self, sensors: List[str]) -> str:

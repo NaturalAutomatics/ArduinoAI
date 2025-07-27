@@ -1,0 +1,10 @@
+{
+  "sensors": [
+    "temperature",
+    "motion"
+  ],
+  "reason": "Added sensors: ['motion']",
+  "cycle": 1,
+  "version": 20,
+  "timestamp": "2025-07-28T02:27:43.192626"
+}
