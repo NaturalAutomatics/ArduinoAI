@@ -2,14 +2,14 @@
   "total_cycles": 1,
   "sensors_used": [
     "temperature",
-    "sound"
+    "motion"
   ],
   "data_history": [
     {
       "cycle": 1,
-      "timestamp": 1753658539.976539,
+      "timestamp": 1753658835.7812595,
       "data": {
-        "temp": 526
+        "temp": 546
       }
     }
   ],
@@ -168,6 +168,30 @@
       "cycle": 1,
       "version": 17,
       "timestamp": "2025-07-28T02:22:52.450408"
+    },
+    {
+      "test": true,
+      "version": 18,
+      "timestamp": "2025-07-28T02:25:30.008039"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 19,
+      "timestamp": "2025-07-28T02:27:03.879600"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "motion"
+      ],
+      "reason": "Added sensors: ['motion']",
+      "cycle": 1,
+      "version": 20,
+      "timestamp": "2025-07-28T02:27:43.192626"
     }
   ]
 }

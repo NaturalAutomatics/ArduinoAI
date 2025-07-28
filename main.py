@@ -58,9 +58,10 @@ class ArduinoAIExplorer:
                 plan = self.ai.generate_exploration_plan(self.current_sensors, self.data_history)
                 print(f"🎯 Next Exploration: {plan.get('next_exploration', 'Continue monitoring')}")
                 
-                # User interaction
+                # User interaction - show if AI generated or fallback
                 if plan.get('hardware_changes'):
-                    print(f"👤 USER ACTION NEEDED: {plan['hardware_changes']}")
+                    ai_generated = "[AI]" if "fallback" not in str(plan) else "[FALLBACK]"
+                    print(f"👤 USER ACTION NEEDED {ai_generated}: {plan['hardware_changes']}")
                     input("Press Enter when hardware changes are complete...")
                 
                 # Wait before next cycle

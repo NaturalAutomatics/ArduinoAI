@@ -50,33 +50,37 @@ Be creative and avoid repetitive suggestions!
 IMPORTANT: Respond with ONLY the JSON object. No extra text before or after.
 """
         
-        try:
-            response = requests.post(
-                f"{self.base_url}/chat/completions",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "model": "gpt4all",
-                    "messages": [
-                        {"role": "system", "content": "You are an Arduino AI. Always respond with valid JSON only. No extra text."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "temperature": 0.7,
-                    "max_tokens": 500
-                }
-            )
-            
-            if response.status_code == 200:
-                content = response.json()['choices'][0]['message']['content'].strip()
-                print(f"Raw AI response: {content[:100]}...")  # Debug
+        # Try multiple times to get valid AI response
+        for attempt in range(3):
+            try:
+                response = requests.post(
+                    f"{self.base_url}/chat/completions",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "model": "gpt4all",
+                        "messages": [
+                            {"role": "system", "content": "You are an Arduino AI. Always respond with valid JSON only. No extra text."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "temperature": 0.7,
+                        "max_tokens": 500
+                    }
+                )
                 
-                # Clean and extract JSON
-                start = content.find('{')
-                end = content.rfind('}') + 1
-                if start >= 0 and end > start:
-                    json_str = content[start:end]
-                    return json.loads(json_str)
-        except Exception as e:
-            print(f"AI analysis failed: {e}")
+                if response.status_code == 200:
+                    content = response.json()['choices'][0]['message']['content'].strip()
+                    print(f"AI attempt {attempt + 1}: {content[:100]}...")  # Debug
+                    
+                    # Try to extract and parse JSON
+                    parsed_json = self._extract_json_from_response(content)
+                    if parsed_json and self._validate_analysis_response(parsed_json):
+                        print(f"✅ Got valid AI response on attempt {attempt + 1}")
+                        return parsed_json
+                        
+            except Exception as e:
+                print(f"AI attempt {attempt + 1} failed: {e}")
+                
+        print("❌ All AI attempts failed, using fallback")
         
         # Dynamic fallback responses with clear instructions
         import random
@@ -90,7 +94,7 @@ IMPORTANT: Respond with ONLY the JSON object. No extra text before or after.
         selected = random.choice(fallback_options)
         
         return {
-            "analysis": f"Cycle {len(self.exploration_history)} - expanding sensor network",
+            "analysis": f"[FALLBACK] Cycle {len(self.exploration_history)} - expanding sensor network",
             "suggested_sensors": [selected["sensor"]],
             "suggested_logic": f"// Read {selected['sensor']} from {selected['pin']}",
             "exploration_question": f"What {selected['sensor']} patterns exist here?",
@@ -134,30 +138,37 @@ Make each response unique and interesting!
 IMPORTANT: Respond with ONLY the JSON object. No extra text before or after.
 """
         
-        try:
-            response = requests.post(
-                f"{self.base_url}/chat/completions",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "model": "gpt4all",
-                    "messages": [
-                        {"role": "system", "content": "You are an Arduino AI. Respond with valid JSON only."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "temperature": 0.7,
-                    "max_tokens": 300
-                }
-            )
-            
-            if response.status_code == 200:
-                content = response.json()['choices'][0]['message']['content'].strip()
-                start = content.find('{')
-                end = content.rfind('}') + 1
-                if start >= 0 and end > start:
-                    json_str = content[start:end]
-                    return json.loads(json_str)
-        except Exception as e:
-            print(f"Exploration plan failed: {e}")
+        # Try multiple times to get valid AI response
+        for attempt in range(3):
+            try:
+                response = requests.post(
+                    f"{self.base_url}/chat/completions",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "model": "gpt4all",
+                        "messages": [
+                            {"role": "system", "content": "You are an Arduino AI. Respond with valid JSON only."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "temperature": 0.7,
+                        "max_tokens": 300
+                    }
+                )
+                
+                if response.status_code == 200:
+                    content = response.json()['choices'][0]['message']['content'].strip()
+                    print(f"Plan attempt {attempt + 1}: {content[:100]}...")  # Debug
+                    
+                    # Try to extract and parse JSON
+                    parsed_json = self._extract_json_from_response(content)
+                    if parsed_json and self._validate_plan_response(parsed_json):
+                        print(f"✅ Got valid plan response on attempt {attempt + 1}")
+                        return parsed_json
+                        
+            except Exception as e:
+                print(f"Plan attempt {attempt + 1} failed: {e}")
+                
+        print("❌ All plan attempts failed, using fallback")
         
         # Dynamic fallback with clear hardware instructions
         import random
@@ -171,7 +182,7 @@ IMPORTANT: Respond with ONLY the JSON object. No extra text before or after.
         selected = random.choice(options)
         
         return {
-            "pattern_analysis": f"Cycle {len(data_history)} - need {selected['exploration']} data",
+            "pattern_analysis": f"[FALLBACK] Cycle {len(data_history)} - need {selected['exploration']} data",
             "next_exploration": f"Implement {selected['exploration']} monitoring",
             "hardware_changes": selected["hardware"],
             "expected_outcome": f"Gather {selected['exploration']} environmental data"
@@ -259,3 +270,45 @@ Update your knowledge for future Arduino explorations.
                 continue
         
         return summary
+    
+    def _extract_json_from_response(self, content: str) -> Dict:
+        """Extract JSON from AI response with multiple strategies"""
+        try:
+            # Strategy 1: Direct JSON parse
+            return json.loads(content)
+        except:
+            pass
+        
+        try:
+            # Strategy 2: Find JSON block
+            start = content.find('{')
+            end = content.rfind('}') + 1
+            if start >= 0 and end > start:
+                json_str = content[start:end]
+                return json.loads(json_str)
+        except:
+            pass
+        
+        try:
+            # Strategy 3: Clean common issues
+            cleaned = content.replace('```json', '').replace('```', '')
+            cleaned = cleaned.replace('\n', ' ').strip()
+            start = cleaned.find('{')
+            end = cleaned.rfind('}') + 1
+            if start >= 0 and end > start:
+                json_str = cleaned[start:end]
+                return json.loads(json_str)
+        except:
+            pass
+        
+        return None
+    
+    def _validate_analysis_response(self, response: Dict) -> bool:
+        """Validate analysis response has required fields"""
+        required_fields = ['analysis', 'suggested_sensors', 'user_instructions']
+        return all(field in response for field in required_fields)
+    
+    def _validate_plan_response(self, response: Dict) -> bool:
+        """Validate plan response has required fields"""
+        required_fields = ['pattern_analysis', 'next_exploration', 'hardware_changes']
+        return all(field in response for field in required_fields)
