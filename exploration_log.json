@@ -2,14 +2,14 @@
   "total_cycles": 1,
   "sensors_used": [
     "temperature",
-    "motion"
+    "light"
   ],
   "data_history": [
     {
       "cycle": 1,
-      "timestamp": 1753658835.7812595,
+      "timestamp": 1753660970.2818866,
       "data": {
-        "temp": 546
+        "temp": 552
       }
     }
   ],
@@ -192,6 +192,25 @@
       "cycle": 1,
       "version": 20,
       "timestamp": "2025-07-28T02:27:43.192626"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 21,
+      "timestamp": "2025-07-28T03:02:38.374254"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "light"
+      ],
+      "reason": "Added sensors: ['light']",
+      "cycle": 1,
+      "version": 22,
+      "timestamp": "2025-07-28T03:03:47.932372"
     }
   ]
 }
