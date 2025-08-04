@@ -1,0 +1,10 @@
+{
+  "sensors": [
+    "temperature",
+    "thermocouple"
+  ],
+  "reason": "Added sensors: ['thermocouple']",
+  "cycle": 1,
+  "version": 31,
+  "timestamp": "2025-08-05T02:02:15.767648"
+}

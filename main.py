@@ -5,6 +5,7 @@ from typing import Dict
 from arduino_interface import ArduinoInterface
 from firmware_manager import FirmwareManager
 from ai_core import AICore
+from web_ui import ArduinoWebUI
 
 class ArduinoAIExplorer:
     def __init__(self):
@@ -14,6 +15,11 @@ class ArduinoAIExplorer:
         self.current_sensors = ["temperature"]  # Start with basic sensor
         self.data_history = []
         self.exploration_cycle = 0
+        
+        # Start web UI
+        self.web_ui = ArduinoWebUI()
+        self.web_ui.start_server()
+        print("🌐 Web UI started at http://localhost:5000")
         
     def run_exploration_loop(self):
         """Main exploration loop"""
@@ -61,8 +67,22 @@ class ArduinoAIExplorer:
                 # User interaction - show if AI generated or fallback
                 if plan.get('hardware_changes'):
                     ai_generated = "[AI]" if "fallback" not in str(plan) else "[FALLBACK]"
-                    print(f"👤 USER ACTION NEEDED {ai_generated}: {plan['hardware_changes']}")
+                    
+                    # Convert complex AI response to readable instruction
+                    instruction_text = self._format_instruction(plan['hardware_changes'])
+                    print(f"👤 USER ACTION NEEDED {ai_generated}: {instruction_text}")
+                    
+                    # Update web UI
+                    ui_data = {
+                        'hardware_changes': instruction_text,
+                        'cycle': self.exploration_cycle,
+                        'current_sensors': self.current_sensors,
+                        'ai_generated': "[AI]" in ai_generated
+                    }
+                    self.web_ui.update_instruction(ui_data)
+                    
                     input("Press Enter when hardware changes are complete...")
+                    self.web_ui.clear_instruction()
                 
                 # Wait before next cycle
                 time.sleep(10)
@@ -183,6 +203,51 @@ class ArduinoAIExplorer:
             clean_logic = f"// {clean_logic}"
         
         return clean_logic
+    
+    def _format_instruction(self, hardware_changes) -> str:
+        """Convert AI response to readable instruction"""
+        if isinstance(hardware_changes, str):
+            return hardware_changes
+        
+        if isinstance(hardware_changes, list):
+            # Handle list of components
+            components = []
+            for item in hardware_changes:
+                if isinstance(item, dict) and 'type' in item:
+                    components.append(item['type'])
+                else:
+                    components.append(str(item))
+            
+            if 'ultrasonic' in str(hardware_changes).lower():
+                return "Connect HC-SR04 ultrasonic sensor: Trig to D3, Echo to D4, VCC to 5V, GND to GND"
+            elif 'motion' in str(hardware_changes).lower() or 'pir' in str(hardware_changes).lower():
+                return "Connect PIR motion sensor to pin D2 (VCC to 5V, GND to GND)"
+            elif 'light' in str(hardware_changes).lower():
+                return "Connect photoresistor to pin A1 with 10kΩ pull-down resistor"
+            elif 'humidity' in str(hardware_changes).lower() or 'dht' in str(hardware_changes).lower():
+                return "Connect DHT22 humidity sensor to pin A2 (VCC to 5V, GND to GND)"
+            elif 'sound' in str(hardware_changes).lower() or 'microphone' in str(hardware_changes).lower():
+                return "Connect microphone sensor to pin A3 (VCC to 5V, GND to GND)"
+            else:
+                return f"Connect components: {', '.join(components)}"
+        
+        if isinstance(hardware_changes, dict):
+            # Handle dict response
+            if 'type' in hardware_changes:
+                sensor_type = hardware_changes['type'].lower()
+                if 'ultrasonic' in sensor_type:
+                    return "Connect HC-SR04 ultrasonic sensor: Trig to D3, Echo to D4"
+                elif 'motion' in sensor_type:
+                    return "Connect PIR motion sensor to pin D2"
+                elif 'light' in sensor_type:
+                    return "Connect photoresistor to pin A1"
+                elif 'humidity' in sensor_type:
+                    return "Connect DHT22 humidity sensor to pin A2"
+                elif 'sound' in sensor_type:
+                    return "Connect microphone sensor to pin A3"
+        
+        # Fallback
+        return f"Connect sensor as instructed: {str(hardware_changes)[:100]}"
 
 if __name__ == "__main__":
     explorer = ArduinoAIExplorer()

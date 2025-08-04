@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino AI Explorer - Connection Guide</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #1a1a1a; color: #fff; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .current-instruction { background: #2d2d2d; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #00ff00; }
+        .arduino-board { width: 400px; height: 300px; background: #0066cc; margin: 20px auto; position: relative; border-radius: 10px; }
+        .pin { position: absolute; width: 20px; height: 20px; background: #ffff00; border-radius: 50%; border: 2px solid #000; }
+        .pin-label { position: absolute; color: #000; font-size: 10px; font-weight: bold; }
+        .instruction-text { font-size: 18px; margin-bottom: 15px; }
+        .ai-badge { background: #00ff00; color: #000; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .fallback-badge { background: #ff6600; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .history { background: #2d2d2d; padding: 15px; border-radius: 10px; margin-top: 20px; }
+        .history-item { padding: 10px; border-bottom: 1px solid #444; }
+        .sensor-info { background: #333; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .blink { animation: blink 1s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Arduino AI Explorer</h1>
+            <h2>Connection Guide</h2>
+        </div>
+        
+        <div id="current-instruction" class="current-instruction">
+            <div class="instruction-text">Waiting for AI instructions...</div>
+        </div>
+        
+        <div class="arduino-board" id="arduino-board">
+            <!-- Arduino Uno pin layout -->
+            <div class="pin" style="top: 20px; left: 50px;" data-pin="A0"></div>
+            <div class="pin-label" style="top: 45px; left: 48px;">A0</div>
+            
+            <div class="pin" style="top: 20px; left: 80px;" data-pin="A1"></div>
+            <div class="pin-label" style="top: 45px; left: 78px;">A1</div>
+            
+            <div class="pin" style="top: 20px; left: 110px;" data-pin="A2"></div>
+            <div class="pin-label" style="top: 45px; left: 108px;">A2</div>
+            
+            <div class="pin" style="top: 20px; left: 140px;" data-pin="A3"></div>
+            <div class="pin-label" style="top: 45px; left: 138px;">A3</div>
+            
+            <div class="pin" style="top: 260px; left: 50px;" data-pin="D2"></div>
+            <div class="pin-label" style="top: 240px; left: 48px;">D2</div>
+            
+            <div class="pin" style="top: 260px; left: 80px;" data-pin="D3"></div>
+            <div class="pin-label" style="top: 240px; left: 78px;">D3</div>
+            
+            <div class="pin" style="top: 260px; left: 110px;" data-pin="D4"></div>
+            <div class="pin-label" style="top: 240px; left: 108px;">D4</div>
+            
+            <div style="position: absolute; top: 130px; left: 150px; color: #fff; font-weight: bold;">ARDUINO UNO</div>
+        </div>
+        
+        <div class="sensor-info" id="sensor-info">
+            <h3>Current Sensors:</h3>
+            <div id="sensor-list">None</div>
+        </div>
+        
+        <div class="history">
+            <h3>Connection History</h3>
+            <div id="history-list">No connections yet</div>
+        </div>
+    </div>
+
+    <script>
+        function updateUI() {
+            fetch('/api/current_instruction')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.instruction) {
+                        const badge = data.ai_generated ? 
+                            '<span class="ai-badge">AI GENERATED</span>' : 
+                            '<span class="fallback-badge">FALLBACK</span>';
+                        
+                        document.getElementById('current-instruction').innerHTML = `
+                            <div class="instruction-text">${badge}</div>
+                            <div class="instruction-text">${data.instruction}</div>
+                            <div>Cycle: ${data.cycle}</div>
+                        `;
+                        
+                        // Highlight relevant pins
+                        highlightPins(data.instruction);
+                        
+                        // Update sensor list
+                        document.getElementById('sensor-list').innerHTML = 
+                            data.sensors ? data.sensors.join(', ') : 'None';
+                    }
+                });
+            
+            fetch('/api/history')
+                .then(response => response.json())
+                .then(data => {
+                    const historyHtml = data.map(item => `
+                        <div class="history-item">
+                            <strong>Cycle ${item.cycle}:</strong> ${item.instruction}
+                            <br><small>${new Date(item.timestamp).toLocaleTimeString()}</small>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('history-list').innerHTML = 
+                        historyHtml || 'No connections yet';
+                });
+        }
+        
+        function highlightPins(instruction) {
+            // Remove previous highlights
+            document.querySelectorAll('.pin').forEach(pin => {
+                pin.classList.remove('blink');
+                pin.style.background = '#ffff00';
+            });
+            
+            // Highlight pins mentioned in instruction
+            const pinMatches = instruction.match(/(A[0-9]|D[0-9])/g);
+            if (pinMatches) {
+                pinMatches.forEach(pinName => {
+                    const pin = document.querySelector(`[data-pin="${pinName}"]`);
+                    if (pin) {
+                        pin.classList.add('blink');
+                        pin.style.background = '#ff0000';
+                    }
+                });
+            }
+            
+            // Add sensor type info
+            let sensorInfo = '';
+            if (instruction.includes('ultrasonic')) {
+                sensorInfo = '🔊 Ultrasonic Distance Sensor (HC-SR04)';
+            } else if (instruction.includes('motion') || instruction.includes('PIR')) {
+                sensorInfo = '🏃 Motion Sensor (PIR)';
+            } else if (instruction.includes('light') || instruction.includes('photoresistor')) {
+                sensorInfo = '💡 Light Sensor (Photoresistor)';
+            } else if (instruction.includes('humidity') || instruction.includes('DHT')) {
+                sensorInfo = '💧 Humidity Sensor (DHT22)';
+            } else if (instruction.includes('sound') || instruction.includes('microphone')) {
+                sensorInfo = '🎤 Sound Sensor (Microphone)';
+            }
+            
+            if (sensorInfo) {
+                document.getElementById('current-instruction').innerHTML += `<div style="margin-top: 10px; font-size: 14px; color: #00ff00;">${sensorInfo}</div>`;
+            }
+        }
+        
+        // Update every 2 seconds
+        setInterval(updateUI, 2000);
+        updateUI(); // Initial load
+    </script>
+</body>
+</html>
