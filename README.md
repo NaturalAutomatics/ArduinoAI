@@ -23,6 +23,9 @@ An autonomous AI system that explores the physical world through Arduino sensors
    ```bash
    python main.py
    ```
+5. Open user's UI and see what to connect next to read the data:
+<img width="1434" height="984" alt="image" src="https://github.com/user-attachments/assets/fa6939e4-82a9-43d8-9f79-d221647cf4b6" />
+
 
 ## How It Works
 
