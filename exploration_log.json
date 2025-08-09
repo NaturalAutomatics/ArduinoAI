@@ -2,14 +2,14 @@
   "total_cycles": 1,
   "sensors_used": [
     "temperature",
-    "light"
+    "sound"
   ],
   "data_history": [
     {
       "cycle": 1,
-      "timestamp": 1753660970.2818866,
+      "timestamp": 1754348865.0375783,
       "data": {
-        "temp": 552
+        "temp": 632
       }
     }
   ],
@@ -211,6 +211,112 @@
       "cycle": 1,
       "version": 22,
       "timestamp": "2025-07-28T03:03:47.932372"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 23,
+      "timestamp": "2025-08-04T21:45:26.333712"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "ultrasonic"
+      ],
+      "reason": "Added sensors: ['ultrasonic']",
+      "cycle": 1,
+      "version": 24,
+      "timestamp": "2025-08-04T21:45:51.580920"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "ultrasonic",
+        "light"
+      ],
+      "reason": "Added sensors: ['light']",
+      "cycle": 2,
+      "version": 25,
+      "timestamp": "2025-08-04T21:49:26.007569"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 26,
+      "timestamp": "2025-08-04T22:18:49.695189"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "light"
+      ],
+      "reason": "Added sensors: ['light']",
+      "cycle": 1,
+      "version": 27,
+      "timestamp": "2025-08-04T22:19:16.718599"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 28,
+      "timestamp": "2025-08-04T22:23:45.561302"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "motion"
+      ],
+      "reason": "Added sensors: ['motion']",
+      "cycle": 1,
+      "version": 29,
+      "timestamp": "2025-08-04T22:24:39.898656"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 30,
+      "timestamp": "2025-08-05T02:01:36.925440"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "thermocouple"
+      ],
+      "reason": "Added sensors: ['thermocouple']",
+      "cycle": 1,
+      "version": 31,
+      "timestamp": "2025-08-05T02:02:15.767648"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 32,
+      "timestamp": "2025-08-05T02:07:33.108614"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "sound"
+      ],
+      "reason": "Added sensors: ['sound']",
+      "cycle": 1,
+      "version": 33,
+      "timestamp": "2025-08-05T02:08:00.487043"
     }
   ]
 }
