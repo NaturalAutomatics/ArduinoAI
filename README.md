@@ -69,3 +69,6 @@ After running multiple iterration AI asking user to change physical Arduino conn
 
 Requests working with local AI model running in GPT4ALL 
 ![alt text](image-1.png)
+
+Generating new firmware based on the data from the real world sensors:
+<img width="1247" height="852" alt="image" src="https://github.com/user-attachments/assets/3ab411bd-6705-4417-8730-552a82c17648" />
