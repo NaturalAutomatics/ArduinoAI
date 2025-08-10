@@ -20,6 +20,7 @@
         .sensor-info { background: #333; padding: 10px; border-radius: 5px; margin: 10px 0; }
         .blink { animation: blink 1s infinite; }
         @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; } }
+        .instruction-details { background: #1a4d1a; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -64,6 +65,24 @@
             <div id="sensor-list">None</div>
         </div>
         
+        <div class="evolution-control" style="text-align: center; margin: 20px 0;">
+            <button id="evolve-btn" onclick="triggerEvolution()" 
+                    style="background: #00ff00; color: #000; padding: 15px 30px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer;">
+                🚀 EVOLVE FIRMWARE
+            </button>
+            <div id="evolution-status" style="margin-top: 10px; font-size: 14px;"></div>
+        </div>
+        
+        <div class="firmware-display" style="background: #2d2d2d; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <h3>🔧 Current Firmware Code</h3>
+            <pre id="firmware-code" style="background: #1a1a1a; padding: 10px; border-radius: 5px; overflow-x: auto; font-size: 12px; color: #00ff00;">Loading firmware...</pre>
+        </div>
+        
+        <div class="wiring-guide" style="background: #2d2d2d; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <h3>🔌 Wiring Guide</h3>
+            <div id="wiring-instructions" style="font-family: monospace; font-size: 14px;">Connect sensors as instructed above</div>
+        </div>
+        
         <div class="history">
             <h3>Connection History</h3>
             <div id="history-list">No connections yet</div>
@@ -71,6 +90,37 @@
     </div>
 
     <script>
+        function triggerEvolution() {
+            const btn = document.getElementById('evolve-btn');
+            const status = document.getElementById('evolution-status');
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ EVOLVING...';
+            status.innerHTML = 'Starting evolution cycle...';
+            
+            fetch('/api/trigger_evolution', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'evolution_triggered') {
+                        status.innerHTML = '✅ Evolution cycle started!';
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            btn.innerHTML = '🚀 EVOLVE FIRMWARE';
+                            status.innerHTML = '';
+                        }, 5000);
+                    } else {
+                        status.innerHTML = '❌ Evolution failed';
+                        btn.disabled = false;
+                        btn.innerHTML = '🚀 EVOLVE FIRMWARE';
+                    }
+                })
+                .catch(error => {
+                    status.innerHTML = '❌ Connection error';
+                    btn.disabled = false;
+                    btn.innerHTML = '🚀 EVOLVE FIRMWARE';
+                });
+        }
+        
         function updateUI() {
             fetch('/api/current_instruction')
                 .then(response => response.json())
@@ -82,7 +132,7 @@
                         
                         document.getElementById('current-instruction').innerHTML = `
                             <div class="instruction-text">${badge}</div>
-                            <div class="instruction-text">${data.instruction}</div>
+                            <div class="instruction-details">${data.instruction}</div>
                             <div>Cycle: ${data.cycle}</div>
                         `;
                         
@@ -92,6 +142,18 @@
                         // Update sensor list
                         document.getElementById('sensor-list').innerHTML = 
                             data.sensors ? data.sensors.join(', ') : 'None';
+                        
+                        // Update wiring guide
+                        updateWiringGuide(data.sensors, data.instruction);
+                    }
+                });
+            
+            // Update firmware code
+            fetch('/api/firmware_code')
+                .then(response => response.json())
+                .then(code => {
+                    if (code) {
+                        document.getElementById('firmware-code').textContent = code;
                     }
                 });
             
@@ -146,6 +208,41 @@
             if (sensorInfo) {
                 document.getElementById('current-instruction').innerHTML += `<div style="margin-top: 10px; font-size: 14px; color: #00ff00;">${sensorInfo}</div>`;
             }
+        }
+        
+        function updateWiringGuide(sensors, instruction) {
+            let wiringHtml = '<h4>📍 Pin Connections:</h4>';
+            
+            if (sensors && sensors.length > 0) {
+                sensors.forEach(sensor => {
+                    switch(sensor.toLowerCase()) {
+                        case 'temperature':
+                            wiringHtml += '<div>🌡️ Temperature: Analog pin A0</div>';
+                            break;
+                        case 'light':
+                            wiringHtml += '<div>💡 Light Sensor: Analog pin A1 + 10kΩ resistor to GND</div>';
+                            break;
+                        case 'motion':
+                            wiringHtml += '<div>🏃 PIR Motion: Digital pin D2, VCC to 5V, GND to GND</div>';
+                            break;
+                        case 'humidity':
+                            wiringHtml += '<div>💧 DHT22 Humidity: Data to A2, VCC to 5V, GND to GND</div>';
+                            break;
+                        case 'sound':
+                            wiringHtml += '<div>🎤 Microphone: Analog pin A3, VCC to 5V, GND to GND</div>';
+                            break;
+                        case 'ultrasonic':
+                            wiringHtml += '<div>🔊 HC-SR04: Trig to D3, Echo to D4, VCC to 5V, GND to GND</div>';
+                            break;
+                    }
+                });
+            }
+            
+            if (instruction && instruction.includes('Connect')) {
+                wiringHtml += `<div style="margin-top: 10px; padding: 10px; background: #1a4d1a; border-radius: 5px;">📋 Next: ${instruction}</div>`;
+            }
+            
+            document.getElementById('wiring-instructions').innerHTML = wiringHtml;
         }
         
         // Update every 2 seconds

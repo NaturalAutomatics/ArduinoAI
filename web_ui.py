@@ -24,6 +24,17 @@ class ArduinoWebUI:
         @self.app.route('/api/history')
         def get_history():
             return jsonify(self.connection_history[-10:])  # Last 10 instructions
+        
+        @self.app.route('/api/trigger_evolution', methods=['POST'])
+        def trigger_evolution():
+            if hasattr(self, 'evolution_callback'):
+                self.evolution_callback()
+                return jsonify({'status': 'evolution_triggered'})
+            return jsonify({'status': 'no_callback'})
+        
+        @self.app.route('/api/firmware_code')
+        def get_firmware_code():
+            return jsonify(getattr(self, 'current_firmware_code', ''))
     
     def update_instruction(self, instruction_data):
         """Update current instruction for user"""
@@ -53,3 +64,11 @@ class ArduinoWebUI:
         """Clear current instruction when completed"""
         if self.current_instruction:
             self.current_instruction['completed'] = True
+    
+    def set_evolution_callback(self, callback):
+        """Set callback for evolution button"""
+        self.evolution_callback = callback
+    
+    def update_firmware_code(self, firmware_code: str):
+        """Update current firmware code for display"""
+        self.current_firmware_code = firmware_code

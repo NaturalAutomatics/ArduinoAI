@@ -1,15 +1,32 @@
 {
-  "total_cycles": 1,
+  "total_cycles": 2,
   "sensors_used": [
     "temperature",
-    "sound"
+    "pressure",
+    "light",
+    "motion"
   ],
   "data_history": [
     {
       "cycle": 1,
-      "timestamp": 1754348865.0375783,
+      "timestamp": 1754784100.8051085,
       "data": {
-        "temp": 632
+        "temp": 655
+      }
+    },
+    {
+      "cycle": 1,
+      "timestamp": 1754784286.3415437,
+      "data": {
+        "temp": 655
+      }
+    },
+    {
+      "cycle": 2,
+      "timestamp": 1754784396.979222,
+      "data": {
+        "temp": 657,
+        "light": 1023
       }
     }
   ],
@@ -317,6 +334,93 @@
       "cycle": 1,
       "version": 33,
       "timestamp": "2025-08-05T02:08:00.487043"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 34,
+      "timestamp": "2025-08-10T02:29:00.622202"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "humidity"
+      ],
+      "reason": "Added sensors: ['humidity']",
+      "cycle": 1,
+      "version": 35,
+      "timestamp": "2025-08-10T02:29:29.213738"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 36,
+      "timestamp": "2025-08-10T02:55:53.381757"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "humidity"
+      ],
+      "reason": "Added sensors: ['humidity']",
+      "cycle": 1,
+      "version": 37,
+      "timestamp": "2025-08-10T02:57:06.278998"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 38,
+      "timestamp": "2025-08-10T03:01:28.850996"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "pressure"
+      ],
+      "reason": "Added sensors: ['pressure']",
+      "cycle": 1,
+      "version": 39,
+      "timestamp": "2025-08-10T03:02:11.299750"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "pressure",
+        "light"
+      ],
+      "reason": "Real-world evolution cycle",
+      "cycle": 1,
+      "real_data": {
+        "temp": 655
+      },
+      "version": 40,
+      "timestamp": "2025-08-10T03:05:47.162586"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "pressure",
+        "light",
+        "motion"
+      ],
+      "reason": "Real-world evolution cycle",
+      "cycle": 2,
+      "real_data": {
+        "temp": 657,
+        "light": 1023
+      },
+      "version": 41,
+      "timestamp": "2025-08-10T03:07:38.684522"
     }
   ]
 }

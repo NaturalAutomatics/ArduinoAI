@@ -18,8 +18,13 @@ class ArduinoAIExplorer:
         
         # Start web UI
         self.web_ui = ArduinoWebUI()
+        self.web_ui.set_evolution_callback(self.trigger_evolution_cycle)
         self.web_ui.start_server()
         print("🌐 Web UI started at http://localhost:5000")
+        
+        # Initialize with basic firmware
+        initial_firmware = self.firmware_manager.create_firmware(self.current_sensors, "// Initial firmware")
+        self.web_ui.update_firmware_code(initial_firmware)
         
     def run_exploration_loop(self):
         """Main exploration loop"""
@@ -81,11 +86,18 @@ class ArduinoAIExplorer:
                     }
                     self.web_ui.update_instruction(ui_data)
                     
-                    input("Press Enter when hardware changes are complete...")
+                    # Wait for user to complete hardware changes
+                    print("🔄 Use the web UI evolution button or press Enter to continue...")
+                    input()
                     self.web_ui.clear_instruction()
-                
-                # Wait before next cycle
-                time.sleep(10)
+                    
+                    # Stop automatic cycling - wait for manual evolution trigger
+                    print("⏸️ Automatic cycling paused. Use web UI to trigger evolution.")
+                    while True:
+                        time.sleep(5)  # Keep connection alive but don't auto-cycle
+                else:
+                    # No hardware changes needed, continue monitoring
+                    time.sleep(10)
                 
         except KeyboardInterrupt:
             print("\n🛑 Exploration stopped by user")
@@ -233,6 +245,23 @@ class ArduinoAIExplorer:
         
         if isinstance(hardware_changes, dict):
             # Handle dict response
+            if 'sensor' in hardware_changes:
+                sensor_type = str(hardware_changes['sensor']).lower()
+                pin = hardware_changes.get('pin', 'A1')
+                
+                if 'hc-sr04' in sensor_type or 'ultrasonic' in sensor_type:
+                    return "Connect HC-SR04 ultrasonic sensor: Trig to D3, Echo to D4, VCC to 5V, GND to GND"
+                elif 'pir' in sensor_type or 'motion' in sensor_type:
+                    return "Connect PIR motion sensor to pin D2, VCC to 5V, GND to GND"
+                elif 'photoresistor' in sensor_type or 'light' in sensor_type:
+                    return "Connect photoresistor to pin A1 with 10kΩ resistor to GND"
+                elif 'dht' in sensor_type or 'humidity' in sensor_type:
+                    return "Connect DHT22 humidity sensor: Data to A2, VCC to 5V, GND to GND"
+                elif 'microphone' in sensor_type or 'sound' in sensor_type:
+                    return "Connect microphone sensor to pin A3, VCC to 5V, GND to GND"
+                else:
+                    return f"Connect {hardware_changes['sensor']} sensor to pin {pin}"
+            
             if 'type' in hardware_changes:
                 sensor_type = hardware_changes['type'].lower()
                 if 'ultrasonic' in sensor_type:
@@ -248,6 +277,130 @@ class ArduinoAIExplorer:
         
         # Fallback
         return f"Connect sensor as instructed: {str(hardware_changes)[:100]}"
+    
+    def trigger_evolution_cycle(self):
+        """Trigger complete evolution cycle from web UI"""
+        print("🚀 Evolution cycle triggered from web UI!")
+        
+        # 1. Read current sensor data
+        sensor_data = self.arduino.read_data()
+        print(f"📊 Real-world data: {sensor_data}")
+        
+        if sensor_data:
+            # 2. Add to history
+            self.data_history.append({
+                'cycle': self.exploration_cycle,
+                'timestamp': time.time(),
+                'data': sensor_data
+            })
+            
+            # 3. AI analysis with real data
+            self.ai.exploration_history.append({'cycle': self.exploration_cycle, 'data': sensor_data})
+            analysis = self.ai.analyze_sensor_data(sensor_data)
+            print(f"🧠 AI learned from real data: {analysis.get('analysis', 'No analysis')[:100]}...")
+            
+            # 4. Train AI with real-world feedback
+            self.ai.save_training_data(
+                sensor_data, 
+                analysis, 
+                "Real-world feedback", 
+                "Evolution cycle triggered"
+            )
+            
+            # 5. Force AI training with new data
+            training_summary = self.ai.get_training_summary()
+            recent_entries = training_summary.get('latest_entries', [])
+            if recent_entries:
+                success = self.ai.train_model_iteration(recent_entries)
+                if success:
+                    print("✅ AI evolved with real-world data!")
+            
+            # 6. Generate evolved firmware with AI code evolution
+            new_sensors = analysis.get('suggested_sensors', [])
+            if new_sensors:
+                self.current_sensors.extend([s for s in new_sensors if s not in self.current_sensors])
+            
+            # Get current firmware for evolution
+            current_firmware = self.firmware_manager.create_firmware(
+                self.current_sensors,
+                "// Current firmware for evolution"
+            )
+            
+            # Ask AI to evolve the firmware code
+            print("🧠 Asking AI to evolve firmware code...")
+            evolved_firmware = self.ai.evolve_firmware_code(
+                current_firmware, 
+                self.current_sensors, 
+                sensor_data
+            )
+            
+            # Validate evolved firmware
+            sketch_content = self._validate_evolved_firmware(evolved_firmware)
+            
+            # 7. Upload AI-evolved firmware
+            metadata = {
+                'sensors': self.current_sensors,
+                'reason': 'AI-evolved firmware based on real data',
+                'cycle': self.exploration_cycle,
+                'real_data': sensor_data,
+                'ai_evolved': True
+            }
+            
+            sketch_path = self.firmware_manager.save_firmware_version(sketch_content, metadata)
+            print(f"💾 Saved AI-evolved firmware v{self.firmware_manager.current_version}")
+            
+            # Update web UI with new firmware code
+            self.web_ui.update_firmware_code(sketch_content)
+            
+            if self.arduino.upload_firmware(sketch_path):
+                print("✅ AI-evolved firmware uploaded successfully!")
+                print(f"🚀 Arduino now running AI-optimized code for: {', '.join(self.current_sensors)}")
+                time.sleep(3)
+                self.arduino.connect()
+            else:
+                print("❌ AI-evolved firmware upload failed")
+            
+            # 8. Increment cycle and generate next exploration plan
+            self.exploration_cycle += 1
+            plan = self.ai.generate_exploration_plan(self.current_sensors, self.data_history)
+            if plan.get('hardware_changes'):
+                instruction_text = self._format_instruction(plan['hardware_changes'])
+                print(f"🎯 Next evolution step: {instruction_text}")
+                
+                # Update web UI with new instruction
+                ui_data = {
+                    'hardware_changes': instruction_text,
+                    'cycle': self.exploration_cycle,
+                    'current_sensors': self.current_sensors,
+                    'ai_generated': True
+                }
+                self.web_ui.update_instruction(ui_data)
+        
+        else:
+            print("❌ No sensor data available for evolution")
+    
+    def _validate_evolved_firmware(self, evolved_code: str) -> str:
+        """Validate and clean AI-evolved firmware"""
+        # Basic validation
+        if not evolved_code or len(evolved_code) < 50:
+            return self.firmware_manager.create_firmware(self.current_sensors, "// Evolution failed")
+        
+        # Check for required Arduino structure
+        if 'void setup()' not in evolved_code or 'void loop()' not in evolved_code:
+            return self.firmware_manager.create_firmware(self.current_sensors, "// Invalid structure")
+        
+        # Remove dangerous code
+        dangerous_patterns = ['#include <', 'system(', 'exec(', 'eval(']
+        for pattern in dangerous_patterns:
+            if pattern in evolved_code:
+                print(f"⚠️ Removed dangerous pattern: {pattern}")
+                evolved_code = evolved_code.replace(pattern, f"// REMOVED: {pattern}")
+        
+        # Ensure Serial.begin is present
+        if 'Serial.begin(' not in evolved_code:
+            evolved_code = evolved_code.replace('void setup() {', 'void setup() {\n  Serial.begin(9600);')
+        
+        return evolved_code
 
 if __name__ == "__main__":
     explorer = ArduinoAIExplorer()

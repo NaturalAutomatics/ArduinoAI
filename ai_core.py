@@ -248,6 +248,78 @@ Update your knowledge for future Arduino explorations.
         
         return False
     
+    def evolve_firmware_code(self, current_firmware: str, sensors: List[str], sensor_data: Dict) -> str:
+        """Ask AI to evolve firmware code based on current setup and data"""
+        prompt = f"""
+You are an Arduino firmware evolution AI. Analyze the current firmware and improve it.
+
+Current firmware:
+```cpp
+{current_firmware}
+```
+
+Current sensors: {sensors}
+Real sensor data: {json.dumps(sensor_data)}
+
+Evolve this firmware to:
+1. Better handle the connected sensors
+2. Add intelligent behavior based on sensor readings
+3. Implement adaptive logic (e.g., adjust delays based on activity)
+4. Add sensor fusion if multiple sensors available
+5. Optimize for the specific environment
+
+Respond with ONLY the improved Arduino code. No explanations.
+"""
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "model": "gpt4all",
+                    "messages": [
+                        {"role": "system", "content": "You are an Arduino firmware evolution AI. Respond with only Arduino C++ code."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.5,
+                    "max_tokens": 1000
+                }
+            )
+            
+            if response.status_code == 200:
+                evolved_code = response.json()['choices'][0]['message']['content'].strip()
+                print(f"🔧 AI evolved firmware: {len(evolved_code)} characters")
+                
+                # Clean the response to extract only Arduino code
+                return self._extract_arduino_code(evolved_code)
+                
+        except Exception as e:
+            print(f"Firmware evolution failed: {e}")
+        
+        return current_firmware  # Return original if evolution fails
+    
+    def _extract_arduino_code(self, response: str) -> str:
+        """Extract Arduino code from AI response"""
+        # Remove markdown code blocks
+        code = response.replace('```cpp', '').replace('```c', '').replace('```', '')
+        
+        # Find setup() and loop() functions
+        if 'void setup()' in code and 'void loop()' in code:
+            return code.strip()
+        
+        # If no proper Arduino structure, return basic template with AI suggestions as comments
+        return f"""
+void setup() {{
+  Serial.begin(9600);
+  // AI suggestions: {response[:200]}...
+}}
+
+void loop() {{
+  // AI evolved logic
+  delay(1000);
+}}
+"""
+    
     def get_training_summary(self) -> Dict:
         """Get summary of training data collected"""
         training_files = [f for f in os.listdir(self.training_data_path) if f.endswith('.json')]
