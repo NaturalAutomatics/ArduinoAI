@@ -1,32 +1,15 @@
 {
-  "total_cycles": 2,
+  "total_cycles": 1,
   "sensors_used": [
     "temperature",
-    "pressure",
-    "light",
-    "motion"
+    "humidity"
   ],
   "data_history": [
     {
       "cycle": 1,
-      "timestamp": 1754784100.8051085,
+      "timestamp": 1754784705.8077347,
       "data": {
-        "temp": 655
-      }
-    },
-    {
-      "cycle": 1,
-      "timestamp": 1754784286.3415437,
-      "data": {
-        "temp": 655
-      }
-    },
-    {
-      "cycle": 2,
-      "timestamp": 1754784396.979222,
-      "data": {
-        "temp": 657,
-        "light": 1023
+        "temp": 660
       }
     }
   ],
@@ -421,6 +404,25 @@
       },
       "version": 41,
       "timestamp": "2025-08-10T03:07:38.684522"
+    },
+    {
+      "sensors": [
+        "temperature"
+      ],
+      "reason": "Initial setup with basic sensors",
+      "cycle": 0,
+      "version": 42,
+      "timestamp": "2025-08-10T03:11:33.905816"
+    },
+    {
+      "sensors": [
+        "temperature",
+        "humidity"
+      ],
+      "reason": "Added sensors: ['humidity']",
+      "cycle": 1,
+      "version": 43,
+      "timestamp": "2025-08-10T03:12:01.819784"
     }
   ]
 }

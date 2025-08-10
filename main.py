@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import json
+import os
 from typing import Dict
 from arduino_interface import ArduinoInterface
 from firmware_manager import FirmwareManager
@@ -321,10 +322,8 @@ class ArduinoAIExplorer:
                 self.current_sensors.extend([s for s in new_sensors if s not in self.current_sensors])
             
             # Get current firmware for evolution
-            current_firmware = self.firmware_manager.create_firmware(
-                self.current_sensors,
-                "// Current firmware for evolution"
-            )
+            current_firmware = self._get_current_firmware_code()
+            print(f"📝 Sending current firmware to AI ({len(current_firmware)} chars)")
             
             # Ask AI to evolve the firmware code
             print("🧠 Asking AI to evolve firmware code...")
@@ -334,8 +333,9 @@ class ArduinoAIExplorer:
                 sensor_data
             )
             
-            # Validate evolved firmware
-            sketch_content = self._validate_evolved_firmware(evolved_firmware)
+            # Use AI response directly as new firmware (with minimal validation)
+            print(f"🚀 Using AI-generated firmware ({len(evolved_firmware)} chars)")
+            sketch_content = self._minimal_firmware_validation(evolved_firmware)
             
             # 7. Upload AI-evolved firmware
             metadata = {
@@ -379,28 +379,42 @@ class ArduinoAIExplorer:
         else:
             print("❌ No sensor data available for evolution")
     
-    def _validate_evolved_firmware(self, evolved_code: str) -> str:
-        """Validate and clean AI-evolved firmware"""
-        # Basic validation
-        if not evolved_code or len(evolved_code) < 50:
-            return self.firmware_manager.create_firmware(self.current_sensors, "// Evolution failed")
+    def _minimal_firmware_validation(self, evolved_code: str) -> str:
+        """Minimal validation - use AI code as-is with basic safety checks"""
+        if not evolved_code or len(evolved_code) < 20:
+            print("⚠️ AI returned empty code, using fallback")
+            return self.firmware_manager.create_firmware(self.current_sensors, "// AI evolution failed")
         
-        # Check for required Arduino structure
-        if 'void setup()' not in evolved_code or 'void loop()' not in evolved_code:
-            return self.firmware_manager.create_firmware(self.current_sensors, "// Invalid structure")
-        
-        # Remove dangerous code
-        dangerous_patterns = ['#include <', 'system(', 'exec(', 'eval(']
+        # Only remove truly dangerous patterns
+        dangerous_patterns = ['system(', 'exec(', 'eval(', 'delete', 'format']
+        clean_code = evolved_code
         for pattern in dangerous_patterns:
-            if pattern in evolved_code:
+            if pattern in clean_code:
                 print(f"⚠️ Removed dangerous pattern: {pattern}")
-                evolved_code = evolved_code.replace(pattern, f"// REMOVED: {pattern}")
+                clean_code = clean_code.replace(pattern, f"// REMOVED: {pattern}")
         
-        # Ensure Serial.begin is present
-        if 'Serial.begin(' not in evolved_code:
-            evolved_code = evolved_code.replace('void setup() {', 'void setup() {\n  Serial.begin(9600);')
-        
-        return evolved_code
+        print("✅ Using AI firmware code with minimal validation")
+        return clean_code
+    
+    def _get_current_firmware_code(self) -> str:
+        """Get the actual current firmware code from latest version"""
+        try:
+            # Get latest firmware version
+            version_history = self.firmware_manager.get_version_history()
+            if version_history:
+                latest_version = version_history[-1]['version']
+                firmware_path = f"firmware_versions/v{latest_version}/sketch_v{latest_version}/sketch_v{latest_version}.ino"
+                
+                if os.path.exists(firmware_path):
+                    with open(firmware_path, 'r') as f:
+                        return f.read()
+            
+            # Fallback: generate basic firmware
+            return self.firmware_manager.create_firmware(self.current_sensors, "// Current basic firmware")
+            
+        except Exception as e:
+            print(f"⚠️ Error reading current firmware: {e}")
+            return self.firmware_manager.create_firmware(self.current_sensors, "// Fallback firmware")
 
 if __name__ == "__main__":
     explorer = ArduinoAIExplorer()
